@@ -36,7 +36,7 @@ FROM ghcr.io/nextgencontributions/python-dev-image
 ```
 
 With VSCode in `.devcontainer/devcontainer.json`:
-```json
+```jsonc
 // For format details, see https://aka.ms/devcontainer.json.
 {
 	"name": "Python 3",
