@@ -23,6 +23,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
         curl \
         git \
         jq \
+        zsh \
     && pip install --no-cache-dir -U pip setuptools wheel \
     && pip install --no-cache-dir uv \
     # Install reviewdog:
