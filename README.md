@@ -41,5 +41,6 @@ With VSCode in `.devcontainer/devcontainer.json`:
 {
 	"name": "Python 3",
 	"image": "ghcr.io/nextgencontributions/python-dev-image"
+	// Do your own customizations here...
 }
 ```
