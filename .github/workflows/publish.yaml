@@ -21,7 +21,7 @@ jobs:
       matrix:
         platform:
           - linux/amd64
-          - linux/arm64
+          # - linux/arm64
 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -77,7 +77,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.platform }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          push: true
+          # outputs: type=image,push-by-digest=true,name-canonical=true,push=true
       
       - name: Export digest
         run: |
