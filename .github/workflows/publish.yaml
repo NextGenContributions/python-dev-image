@@ -77,8 +77,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.platform }}
-          push: true
-          # outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          # push: true
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
       
       - name: Export digest
         run: |
