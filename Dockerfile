@@ -31,7 +31,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
         | sh -s -- -b /usr/local/bin \
     # Make sure java runtime is found for sonarqube:
     && ln -s "$(dirname "$(dirname "$(readlink -f "$(which java)")")")" "$JAVA_HOME" \
-    # Install Snyk CLI and Hadolint:
+    # Install other tools:
     && export ACTIONLINT_VERSION=$(curl -s https://api.github.com/repos/rhysd/actionlint/releases/latest | jq -r '.tag_name' | sed "s/v//") \
     && export HADOLINT_VERSION=$(curl -s https://api.github.com/repos/hadolint/hadolint/releases/latest | jq -r '.tag_name') \
     && if [ "$(uname -m)" = "aarch64" ]; then \
