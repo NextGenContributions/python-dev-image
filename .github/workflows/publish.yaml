@@ -84,7 +84,9 @@ jobs:
         run: |
           mkdir -p ${{ runner.temp }}/digests
           digest="${{ steps.push.outputs.digest }}"
+          echo $digest
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
+          ls -l ${{ runner.temp }}/digests
 
       - name: Upload digest for merge-images step
         uses: actions/upload-artifact@v4
