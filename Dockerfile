@@ -47,8 +47,8 @@ RUN --mount=type=cache,target=/var/cache/apt \
     fi \
     && chmod +x /usr/local/bin/snyk \
     && chmod +x /usr/local/bin/hadolint \
-    && chmod +x /usr/local/bin/shfmt \
-    && chmod +x /usr/local/bin/actionlint
+    && chmod +x /usr/local/bin/shfmt
+    # && chmod +x /usr/local/bin/actionlint
 
 
 # Copy from the cache instead of linking since it's a mounted volume
