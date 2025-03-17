@@ -37,13 +37,13 @@ RUN --mount=type=cache,target=/var/cache/apt \
     && if [ "$(uname -m)" = "aarch64" ]; then \
         curl -o /usr/local/bin/snyk -L https://static.snyk.io/cli/latest/snyk-linux-arm64 \
         && curl -o /usr/local/bin/hadolint -L https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-arm64 \
-        && curl -o /usr/local/bin/shfmt https://github.com/patrickvane/shfmt/releases/download/master/shfmt_linux_arm \
-        && curl -sL https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_arm64.tar.gz | tar -xzf - -C /usr/local/bin actionlint; \
+        && curl -o /usr/local/bin/shfmt https://github.com/patrickvane/shfmt/releases/download/master/shfmt_linux_arm ;\
+        # && curl -sL https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_arm64.tar.gz | tar -xzf - -C /usr/local/bin actionlint; \
     else \
         curl -o /usr/local/bin/snyk -L https://static.snyk.io/cli/latest/snyk-linux \
         && curl -o /usr/local/bin/hadolint -L https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64 \
-        && curl -o /usr/local/bin/shfmt https://github.com/patrickvane/shfmt/releases/download/master/shfmt_linux_amd64 \
-        && curl -sL https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz | tar -xzf - -C /usr/local/bin actionlint; \
+        && curl -o /usr/local/bin/shfmt https://github.com/patrickvane/shfmt/releases/download/master/shfmt_linux_amd64 ;\
+        # && curl -sL https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz | tar -xzf - -C /usr/local/bin actionlint; \
     fi \
     && chmod +x /usr/local/bin/snyk \
     && chmod +x /usr/local/bin/hadolint \
