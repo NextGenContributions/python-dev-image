@@ -12,6 +12,13 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+# Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
+permissions:
+  contents: read
+  packages: write
+  attestations: write
+  id-token: write
+
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
   build-and-push-image:
@@ -22,13 +29,6 @@ jobs:
         platform:
           - linux/amd64
           # - linux/arm64
-
-    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
-    permissions:
-      contents: read
-      packages: write
-      attestations: write
-      id-token: write
 
     steps:
       - name: Prepare
@@ -111,11 +111,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-and-push-image
-    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
@@ -147,14 +142,14 @@ jobs:
           IMAGE_LOWERCASE="${IMAGE_NAME,,}"
           echo $IMAGE_LOWERCASE
           echo $DOCKER_METADATA_OUTPUT_JSON
-          echo $DOCKER_METADATA_OUTPUT_JSON > ${{ runner.temp }}/metadata_output.json
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf "$IMAGE_LOWERCASE@sha256:%s " *)
 
-        # docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-        #   $(printf "$IMAGE_LOWERCASE@sha256:%s " *)
+        # echo $DOCKER_METADATA_OUTPUT_JSON > ${{ runner.temp }}/metadata_output.json
 
-      - name: Save metadata json for debugging
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-metadata-output
-          path: ${{ runner.temp }}/metadata_output.json
-          retention-days: 1
+      # - name: Save metadata json for debugging
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: docker-metadata-output
+      #     path: ${{ runner.temp }}/metadata_output.json
+      #     retention-days: 1
