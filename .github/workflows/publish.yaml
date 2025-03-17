@@ -144,5 +144,6 @@ jobs:
           IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           IMAGE_LOWERCASE="${IMAGE_NAME,,}"
           echo $IMAGE_LOWERCASE
+          echo $DOCKER_METADATA_OUTPUT_JSON
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf "$IMAGE_LOWERCASE@sha256:%s " *)
