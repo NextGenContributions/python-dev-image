@@ -145,5 +145,14 @@ jobs:
           IMAGE_LOWERCASE="${IMAGE_NAME,,}"
           echo $IMAGE_LOWERCASE
           echo $DOCKER_METADATA_OUTPUT_JSON
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf "$IMAGE_LOWERCASE@sha256:%s " *)
+          echo $DOCKER_METADATA_OUTPUT_JSON > ${{ runner.temp }}/metadata_output.json
+
+        # docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+        #   $(printf "$IMAGE_LOWERCASE@sha256:%s " *)
+
+      - name: Save metadata json for debugging
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-metadata-output
+          path: ${{ runner.temp }}/metadata_output.json
+          retention-days: 1
