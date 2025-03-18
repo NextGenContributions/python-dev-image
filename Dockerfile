@@ -10,7 +10,8 @@ RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/root/.cache/pip \
     apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests \
-        curl
+        curl \
+        jq 
         # Required for pyre vscode extension
         # watchman \
         # # Required for sonarqube vscode extension
