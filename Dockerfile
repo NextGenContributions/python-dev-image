@@ -50,6 +50,9 @@ RUN --mount=type=cache,target=/var/cache/apt \
     && chmod +x /usr/local/bin/shfmt
     # && chmod +x /usr/local/bin/actionlint
 
+# Debug gz extraction issues
+RUN curl -sL https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_arm64.tar.gz | tar -xzf - -C /usr/local/bin actionlint_arm64
+RUN curl -sL https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz | tar -xzf - -C /usr/local/bin actionlint_amd64
 
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
