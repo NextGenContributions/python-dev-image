@@ -26,6 +26,8 @@ RUN --mount=type=cache,target=/var/cache/apt \
         zsh \
     && pip install --no-cache-dir -U pip setuptools wheel \
     && pip install --no-cache-dir uv \
+    # Install Pulumi:
+    && curl -fsSL https://get.pulumi.com | sh \
     # Install reviewdog:
     && curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh \
         | sh -s -- -b /usr/local/bin \
