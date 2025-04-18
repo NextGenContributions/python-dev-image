@@ -1,13 +1,12 @@
-FROM python:3.12-bookworm
+FROM ubuntu:24.04 AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV JAVA_HOME=/usr/lib/jvm/java-openjdk
 
 # https://docs.docker.com/build/cache/optimize/#use-cache-mounts
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
-    --mount=type=cache,target=/root/.cache/pip \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests \
         # Required for pyre vscode extension
@@ -24,8 +23,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
         git \
         jq \
         zsh \
-    && pip install --no-cache-dir -U pip setuptools wheel \
-    && pip install --no-cache-dir uv \
+    && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="/usr/local/bin" sh \
     # Install Pulumi:
     && curl -fsSL https://get.pulumi.com | sh \
     # Install reviewdog:
@@ -55,13 +53,12 @@ RUN --mount=type=cache,target=/var/cache/apt \
 
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
-ENV UV_SYSTEM_PYTHON=true
-ENV UV_BREAK_SYSTEM_PACKAGES=true
-ENV UV_PROJECT_ENVIRONMENT=/usr/local
-
+ENV PATH="/root/.local/bin:$PATH"
 
 # Install the project's dependencies using the lockfile and settings
 ONBUILD RUN --mount=type=cache,target=/root/.cache/uv \
-            --mount=type=bind,source=uv.lock,target=uv.lock \
-            --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-            uv sync --frozen --no-install-project
+            --mount=type=bind,source=uv.lock,target=uv.lock,readonly \
+            --mount=type=bind,source=pyproject.toml,target=pyproject.toml,readonly \
+            --mount=type=bind,source=.python-version,target=.python-version,readonly \
+            uv python install --preview --default \
+            && uv sync --frozen --no-install-project
