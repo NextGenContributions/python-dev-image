@@ -1,5 +1,5 @@
-ARG BASE_IMAGE=python-dev-image:latest AS scratch
-FROM ${BASE_IMAGE}
+ARG BASE_IMAGE=python-dev-image:latest
+FROM ${BASE_IMAGE} AS scratch
 
 
 
