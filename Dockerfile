@@ -4,11 +4,13 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV JAVA_HOME=/usr/lib/jvm/java-openjdk
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # https://docs.docker.com/build/cache/optimize/#use-cache-mounts
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    set -eux \
-    && apt-get update \
+    apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends --no-install-suggests \
     # Required for pyre vscode extension
     watchman \
@@ -24,9 +26,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     git \
     jq \
     zsh \
+    # Install uv:
     && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="/usr/local/bin" sh \
     # Install Pulumi:
     && curl -fsSL https://get.pulumi.com | sh \
+    && mv /root/.pulumi/bin/pulumi /usr/local/bin \
     # Install reviewdog:
     && curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh \
     | sh -s -- -b /usr/local/bin \
@@ -35,15 +39,16 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     # Install other tools:
     && export ACTIONLINT_VERSION=$(curl -s https://api.github.com/repos/rhysd/actionlint/releases/latest | jq -r '.tag_name' | sed "s/v//") \
     && export HADOLINT_VERSION=$(curl -s https://api.github.com/repos/hadolint/hadolint/releases/latest | jq -r '.tag_name') \
+    && export SHFMT_VERSION=$(curl -s https://api.github.com/repos/mvdan/sh/releases/latest | jq -r '.tag_name') \
     && if [ "$(uname -m)" = "aarch64" ]; then \
     curl -o /usr/local/bin/snyk -L https://static.snyk.io/cli/latest/snyk-linux-arm64 \
     && curl -o /usr/local/bin/hadolint -L https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-arm64 \
-    && curl -o /usr/local/bin/shfmt https://github.com/patrickvane/shfmt/releases/download/master/shfmt_linux_arm \
+    && curl -o /usr/local/bin/shfmt -L https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_arm64 \
     && curl -sL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_arm64.tar.gz" | tar -xzf - -C /usr/local/bin actionlint ; \
     else \
     curl -o /usr/local/bin/snyk -L https://static.snyk.io/cli/latest/snyk-linux \
     && curl -o /usr/local/bin/hadolint -L https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64 \
-    && curl -o /usr/local/bin/shfmt https://github.com/patrickvane/shfmt/releases/download/master/shfmt_linux_amd64 \
+    && curl -o /usr/local/bin/shfmt -L https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64 \
     && curl -sL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" | tar -xzf - -C /usr/local/bin actionlint ; \
     fi \
     && chmod +x /usr/local/bin/snyk \
@@ -64,6 +69,5 @@ ONBUILD RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock,readonly \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml,readonly \
     --mount=type=bind,source=.python-version,target=.python-version,readonly \
-    set -eux \
-    && uv venv \
+    uv venv \
     && uv sync --frozen --no-install-project

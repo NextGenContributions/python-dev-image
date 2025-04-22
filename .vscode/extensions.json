@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "timonwong.shellcheck",
+        "ms-azuretools.vscode-docker",
+        "exiasr.hadolint",
+        "foxundermoon.shell-format",
+        "davidanson.vscode-markdownlint",
+        "github.vscode-github-actions",
+        "redhat.vscode-yaml",
+        "docker.docker"
+    ]
+}
