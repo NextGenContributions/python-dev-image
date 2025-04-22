@@ -43,7 +43,7 @@ docker run --rm ghcr.io/nextgencontributions/python-dev-image
 In your project's `Dockerfile`:
 
 ```Dockerfile
-FROM ghcr.io/nextgencontributions/python-dev-image
+FROM ghcr.io/nextgencontributions/python-dev-image # AS scratch
 
 # Do your own customizations here...
 ```
