@@ -17,10 +17,10 @@ build_and_test() {
     echo "Building and testing for platform: $platform with tag: $tag"
 
     # Build the base image
-    docker buildx build --platform "$platform" -t python-dev-image:"$tag" -f Dockerfile .
+    docker buildx build --load --platform "$platform" -t python-dev-image:"$tag" -f Dockerfile .
 
     # Build the test image
-    docker buildx build --platform "$platform" -t $TEST_IMAGE_NAME:"$tag" -f tests/test-data/build-context/Dockerfile tests/test-data/build-context
+    docker buildx build --load --platform "$platform" -t $TEST_IMAGE_NAME:"$tag" -f tests/test-data/build-context/Dockerfile tests/test-data/build-context
 
     docker run --platform "$platform" --rm $TEST_IMAGE_NAME:"$tag" uname -m
 
