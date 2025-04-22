@@ -19,8 +19,8 @@ build_and_test() {
     # Build the base image
     docker buildx build --load --platform "$platform" -t python-dev-image:"$tag" -f Dockerfile .
 
-    # Build the test image
-    docker buildx build --load --platform "$platform" -t $TEST_IMAGE_NAME:"$tag" --build-arg BASE_IMAGE=python-dev-image:"$tag" -f tests/test-data/build-context/Dockerfile tests/test-data/build-context
+    # Build the test image (use classic docker build for local-only workaround)
+    docker build --platform "$platform" -t $TEST_IMAGE_NAME:"$tag" --build-arg BASE_IMAGE=python-dev-image:"$tag" -f tests/test-data/build-context/Dockerfile tests/test-data/build-context
 
     docker run --platform "$platform" --rm $TEST_IMAGE_NAME:"$tag" uname -m
 
