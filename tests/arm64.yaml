@@ -1,0 +1,7 @@
+schemaVersion: "2.0.0"
+
+commandTests:
+  - name: "is correct architecture"
+    command: "uname"
+    args: ["-m"]
+    expectedOutput: ["aarch64"]

@@ -9,7 +9,8 @@
 
 set -euxo pipefail
 
-TEST_IMAGE_NAME="python-dev-test-image"
+BASE_IMAGE="python-dev-image"
+TEST_IMAGE="python-dev-test-image"
 
 platforms="${1:-linux/amd64 linux/arm64}"
 
@@ -18,21 +19,30 @@ build_and_test() {
     local platform=$1
     local tag=$2
 
+    BASE_PLATFORM_IMAGE="$BASE_IMAGE-$platform:$tag"
+    TEST_PLATFORM_IMAGE="$TEST_IMAGE-$platform:$tag"
+
     echo "Building and testing for platform: $platform with tag: $tag"
 
     # Build the base image
-    docker buildx build --load --platform "$platform" -t python-dev-image:"$tag" -f Dockerfile .
+    docker build --load --platform "$platform" -t "$BASE_PLATFORM_IMAGE" -f Dockerfile .
 
     # Build the test image (use classic docker build for local-only workaround)
-    docker build --platform "$platform" -t $TEST_IMAGE_NAME:"$tag" --build-arg BASE_IMAGE=python-dev-image:"$tag" -f tests/test-data/build-context/Dockerfile tests/test-data/build-context
+    docker build --load --platform "$platform" -t "$TEST_PLATFORM_IMAGE" --build-arg BASE_IMAGE="$BASE_PLATFORM_IMAGE" --build-arg PLATFORM="$platform" -f tests/test-data/build-context/Dockerfile tests/test-data/build-context
 
-    docker run --platform "$platform" --rm $TEST_IMAGE_NAME:"$tag" uname -m
+    docker run --platform "$platform" --rm "$TEST_PLATFORM_IMAGE" uname -m
+
+    if [ "$platform" == "linux/amd64" ]; then
+        container-structure-test test --platform "$platform" --image "$TEST_PLATFORM_IMAGE" --config tests/amd64.yaml
+    else
+        container-structure-test test --platform "$platform" --image "$TEST_PLATFORM_IMAGE" --config tests/arm64.yaml
+    fi
 
     # Run the tests
-    container-structure-test test --platform "$platform" --image $TEST_IMAGE_NAME:"$tag" --config tests/specs.yaml
+    container-structure-test test --platform "$platform" --image "$TEST_PLATFORM_IMAGE" --config tests/specs.yaml
 
     # Clean up
-    docker rmi $TEST_IMAGE_NAME:"$tag" || true
+    docker rmi $TEST_IMAGE:"$tag" || true
 }
 
 for platform in $platforms; do

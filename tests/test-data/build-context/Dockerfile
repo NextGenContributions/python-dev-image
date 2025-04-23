@@ -1,2 +1,3 @@
-ARG BASE_IMAGE=python-dev-image:latest
-FROM ${BASE_IMAGE} AS scratch
+ARG BASE_IMAGE
+ARG PLATFORM
+FROM --platform=${PLATFORM} ${BASE_IMAGE} AS scratch
