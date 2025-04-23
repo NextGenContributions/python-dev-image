@@ -1,0 +1,5 @@
+tap "homebrew/bundle"
+brew "container-structure-test"
+brew "hadolint"
+brew "shellcheck"
+brew "shfmt"

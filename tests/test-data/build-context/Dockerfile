@@ -1,0 +1,3 @@
+ARG BASE_IMAGE
+ARG PLATFORM
+FROM --platform=${PLATFORM} ${BASE_IMAGE} AS scratch

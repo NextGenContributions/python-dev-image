@@ -49,9 +49,42 @@ jobs:
           IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           echo "IMAGE_LOWERCASE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
+  test:
+    strategy:
+      fail-fast: false
+      # This job runs on two different runners: one for x86_64 and one for ARM.
+      # The ARM runner is used to test the image on an ARM architecture.
+      # The x86_64 runner is used to test the image on an x86_64 architecture.
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Install container-structure-test
+        run: |
+            if [[ "${{ matrix.platform }}" == *"arm64"* ]]; then
+            curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-arm64 && chmod +x container-structure-test-linux-arm64 && sudo mv container-structure-test-linux-arm64 /usr/local/bin/container-structure-test
+            else
+            curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+            fi
+
+      - name: Run tests
+        run: |
+          ./test.sh ${{ matrix.platform }}
+
   build_and_push_image:
     needs:
       - prep
+      - test
     env:
       IMAGE_LOWERCASE: ${{ needs.prep.outputs.IMAGE_LOWERCASE }}
     strategy:
