@@ -3,11 +3,15 @@
 # This script builds and tests a Docker image for multiple platforms (amd64 and arm64).
 # It uses Docker Buildx to build the image and container-structure-test to run tests on the built image.
 #
-# Usage: ./test.sh
+# Usage: ./test.sh [platform]
+#
+# If no platform is specified, it defaults to "linux/amd64 linux/arm64".
 
 set -euxo pipefail
 
 TEST_IMAGE_NAME="python-dev-test-image"
+
+platforms="${1:-linux/amd64 linux/arm64}"
 
 # Build and test function that takes platform as parameter
 build_and_test() {
@@ -31,8 +35,7 @@ build_and_test() {
     docker rmi $TEST_IMAGE_NAME:"$tag" || true
 }
 
-# Run for amd64
-build_and_test "linux/amd64" "latest"
-
-# Run for arm64
-build_and_test "linux/arm64" "latest"
+for platform in $platforms; do
+    # Build and test for each platform
+    build_and_test "$platform" "latest"
+done

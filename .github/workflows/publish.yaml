@@ -50,7 +50,18 @@ jobs:
           echo "IMAGE_LOWERCASE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # This job runs on two different runners: one for x86_64 and one for ARM.
+      # The ARM runner is used to test the image on an ARM architecture.
+      # The x86_64 runner is used to test the image on an x86_64 architecture.
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -60,11 +71,15 @@ jobs:
 
       - name: Install container-structure-test
         run: |
-          curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+            if [[ "${{ matrix.platform }}" == *"arm64"* ]]; then
+            curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-arm64 && chmod +x container-structure-test-linux-arm64 && sudo mv container-structure-test-linux-arm64 /usr/local/bin/container-structure-test
+            else
+            curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+            fi
 
       - name: Run tests
         run: |
-          ./test.sh
+          ./test.sh ${{ matrix.platform }}
 
   build_and_push_image:
     needs:
