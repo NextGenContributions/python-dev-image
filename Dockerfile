@@ -24,6 +24,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     # General purpose tools
     curl \
     git \
+    openssh-client \
     jq \
     zsh \
     # Install uv:

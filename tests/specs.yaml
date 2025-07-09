@@ -9,6 +9,16 @@ commandTests:
     args: ["--version"]
     expectedOutput: ["Python 3.12"]
 
+  - name: "git is installed in path"
+    command: "git"
+    args: ["--version"]
+    expectedOutput: ["git version"]
+
+  - name: "ssh is installed in path"
+    command: "ssh"
+    args: ["-V"]
+    expectedError: ["OpenSSH"]
+
   - name: "uv is installed in path"
     command: "uv"
     args: ["--version"]
