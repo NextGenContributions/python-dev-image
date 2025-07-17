@@ -27,6 +27,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     openssh-client \
     jq \
     zsh \
+    postgresql-client \
     # Install uv:
     && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="/usr/local/bin" sh \
     # Install Pulumi:

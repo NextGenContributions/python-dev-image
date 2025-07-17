@@ -60,3 +60,7 @@ commandTests:
   - name: "ONBUILD was executed"
     command: "ruff"
     args: ["--version"]
+
+  - name: "psql is installed in path"
+    command: "psql"
+    args: ["--version"]
