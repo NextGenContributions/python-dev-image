@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM ubuntu:24.04 AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -59,17 +60,21 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && chmod +x /usr/local/bin/actionlint
 
 WORKDIR /app
-ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
-ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV UV_PYTHON_INSTALL_DIR=/opt/pythons
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+ONBUILD COPY pyproject.toml* uv.lock* .python-version* /app/
 
 # Install the project's dependencies using the lockfile and settings
-ONBUILD RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock,readonly \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml,readonly \
-    --mount=type=bind,source=.python-version,target=.python-version,readonly \
-    uv venv \
-    && uv sync --frozen --no-install-project
+ONBUILD RUN --mount=type=ssh \
+    mkdir -p ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts \
+    && uv venv \
+    && if [ -f "pyproject.toml" ] && [ -f "uv.lock" ]; then \
+        uv sync --frozen --no-install-project --no-cache; \
+    fi \
+    && rm -rf /app/.python-version* /app/pyproject.toml* /app/uv.lock*
