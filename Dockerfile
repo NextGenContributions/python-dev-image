@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM ubuntu:24.04 AS base
+FROM ubuntu:25.10 AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -29,6 +29,30 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     jq \
     zsh \
     postgresql-client \
+    # Better alternative to grep
+    ripgrep \
+    # Better alternative to find
+    fd-find \
+    # Better alternative to top/htop
+    btop \
+    # Better alternative to ls
+    eza \
+    # Better alternative to du
+    du-dust \
+    # Better alternative to cat
+    bat \
+    # Pager for bat
+    less \
+    # Fuzzy finder
+    fzf \
+    # Code counter
+    tokei \
+    # Benchmarking tool
+    hyperfine \
+    # Linking preferred alternatives
+    && ln -s /usr/bin/eza /usr/local/bin/ls \
+    && ln -s /usr/bin/batcat /usr/local/bin/bat \
+    && ln -s /usr/bin/fdfind /usr/local/bin/fd \
     # Install uv:
     && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="/usr/local/bin" sh \
     # Install Pulumi:

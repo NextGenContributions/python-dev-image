@@ -64,3 +64,44 @@ commandTests:
   - name: "psql is installed in path"
     command: "psql"
     args: ["--version"]
+
+  - name: "ripgrep is installed in path"
+    command: "rg"
+    args: ["--version"]
+
+  - name: "fd is installed in path"
+    command: "fd"
+    args: ["--version"]
+
+  - name: "btop is installed in path"
+    command: "btop"
+    args: ["--version"]
+
+  - name: "eza is installed in path"
+    command: "eza"
+    args: ["--version"]
+
+  - name: "ls is overridden by eza"
+    command: "ls"
+    args: ["--version"]
+    expectedOutput: ["eza"]
+
+  - name: "dust is installed in path"
+    command: "dust"
+    args: ["--version"]
+
+  - name: "bat is installed in path"
+    command: "bat"
+    args: ["--version"]
+
+  - name: "fzf is installed in path"
+    command: "fzf"
+    args: ["--version"]
+
+  - name: "tokei is installed in path"
+    command: "tokei"
+    args: ["--version"]
+
+  - name: "hyperfine is installed in path"
+    command: "hyperfine"
+    args: ["--version"]
