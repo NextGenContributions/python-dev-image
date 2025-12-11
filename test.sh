@@ -41,19 +41,19 @@ build_and_test() {
     docker run --platform "$platform" --rm "$TEST_PLATFORM_IMAGE" uname -m
 
     # Conditionally add --platform flag
-    PLATFORM_ARG=""
+    PLATFORM_ARG=()
     if [ -n "$PLATFORM_FLAG" ]; then
-        PLATFORM_ARG="--platform $platform"
+        PLATFORM_ARG=(--platform "$platform")
     fi
 
     if [ "$platform" == "linux/amd64" ]; then
-        container-structure-test test "$PLATFORM_ARG" --image "$TEST_PLATFORM_IMAGE" --config tests/amd64.yaml
+        container-structure-test test "${PLATFORM_ARG[@]}" --image "$TEST_PLATFORM_IMAGE" --config tests/amd64.yaml
     else
-        container-structure-test test "$PLATFORM_ARG" --image "$TEST_PLATFORM_IMAGE" --config tests/arm64.yaml
+        container-structure-test test "${PLATFORM_ARG[@]}" --image "$TEST_PLATFORM_IMAGE" --config tests/arm64.yaml
     fi
 
     # Run the tests
-    container-structure-test test "$PLATFORM_ARG" --image "$TEST_PLATFORM_IMAGE" --config tests/specs.yaml
+    container-structure-test test "${PLATFORM_ARG[@]}" --image "$TEST_PLATFORM_IMAGE" --config tests/specs.yaml
 
     # Clean up
     docker rmi $TEST_IMAGE:"$tag" || true
