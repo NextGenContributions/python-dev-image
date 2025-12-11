@@ -71,11 +71,14 @@ jobs:
 
       - name: Install container-structure-test
         run: |
-            if [[ "${{ matrix.platform }}" == *"arm64"* ]]; then
-            curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-arm64 && chmod +x container-structure-test-linux-arm64 && sudo mv container-structure-test-linux-arm64 /usr/local/bin/container-structure-test
-            else
-            curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
-            fi
+          if [ "${{ matrix.platform }}" == "linux/arm64" ]; then
+            ARCH="arm64"
+          else
+            ARCH="amd64"
+          fi
+          curl -LO "https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-${ARCH}"
+          chmod +x "container-structure-test-linux-${ARCH}"
+          sudo mv "container-structure-test-linux-${ARCH}" /usr/local/bin/container-structure-test
 
       - name: Run tests
         run: |
