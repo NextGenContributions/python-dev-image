@@ -1,0 +1,40 @@
+name: Test Docker image
+
+on:
+  pull_request:
+    branches:
+      - latest
+  push:
+    branches:
+      - latest
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install container-structure-test
+        run: |
+          if [ "${{ matrix.platform }}" == "linux/arm64" ]; then
+            ARCH="arm64"
+          else
+            ARCH="amd64"
+          fi
+          curl -LO "https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-${ARCH}"
+          chmod +x "container-structure-test-linux-${ARCH}"
+          sudo mv "container-structure-test-linux-${ARCH}" /usr/local/bin/container-structure-test
+
+      - name: Run tests
+        run: ./test.sh "${{ matrix.platform }}"

@@ -20,6 +20,18 @@ It contains the necessary dependencies for running various linters and type chec
 - `hadolint` - for linting Dockerfile
 - `actionlint` - static checker for GitHub Actions workflow files
 
+Alternative unix power tools:
+
+- `rg` (ripgrep) - better alternative to `grep`
+- `fd` - better alternative to `find`
+- `btop` - better alternative to `top`/`htop`
+- `eza` - better alternative to `ls` *(symlinked to replace `ls`)*
+- `dust` - better alternative to `du`
+- `bat` - better alternative to `cat`
+- `fzf` - fuzzy finder
+- `tokei` - code counter
+- `hyperfine` - benchmarking tool
+
 Other tools:
 
 - `pulumi` - Pulumi CLI for infrastructure as code

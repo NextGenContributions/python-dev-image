@@ -14,6 +14,14 @@ TEST_IMAGE="python-dev-test-image"
 
 platforms="${1:-linux/amd64 linux/arm64}"
 
+# Check if container-structure-test supports --platform flag
+# Linux binaries of container-structure-test may not support --platform flag
+# and thus can only run tests for the local architecture.
+PLATFORM_FLAG=""
+if container-structure-test test --help 2>&1 | grep -q -- '--platform'; then
+    PLATFORM_FLAG="--platform"
+fi
+
 # Build and test function that takes platform as parameter
 build_and_test() {
     local platform=$1
@@ -32,14 +40,20 @@ build_and_test() {
 
     docker run --platform "$platform" --rm "$TEST_PLATFORM_IMAGE" uname -m
 
+    # Conditionally add --platform flag
+    PLATFORM_ARG=""
+    if [ -n "$PLATFORM_FLAG" ]; then
+        PLATFORM_ARG="--platform $platform"
+    fi
+
     if [ "$platform" == "linux/amd64" ]; then
-        container-structure-test test --platform "$platform" --image "$TEST_PLATFORM_IMAGE" --config tests/amd64.yaml
+        container-structure-test test "$PLATFORM_ARG" --image "$TEST_PLATFORM_IMAGE" --config tests/amd64.yaml
     else
-        container-structure-test test --platform "$platform" --image "$TEST_PLATFORM_IMAGE" --config tests/arm64.yaml
+        container-structure-test test "$PLATFORM_ARG" --image "$TEST_PLATFORM_IMAGE" --config tests/arm64.yaml
     fi
 
     # Run the tests
-    container-structure-test test --platform "$platform" --image "$TEST_PLATFORM_IMAGE" --config tests/specs.yaml
+    container-structure-test test "$PLATFORM_ARG" --image "$TEST_PLATFORM_IMAGE" --config tests/specs.yaml
 
     # Clean up
     docker rmi $TEST_IMAGE:"$tag" || true
