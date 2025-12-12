@@ -41,10 +41,6 @@ commandTests:
     command: "snyk"
     args: ["--version"]
 
-  - name: "pulumi is installed in path"
-    command: "pulumi"
-    args: ["version"]
-
   - name: "reviewdog is installed in path"
     command: "reviewdog"
     args: ["--version"]
