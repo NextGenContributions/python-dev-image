@@ -1,11 +1,71 @@
 # syntax=docker/dockerfile:1
-FROM ubuntu:25.10 AS base
 
+# Version of actionlint to install: latest, or specific version number WITHOUT 'v' prefix e.g. 1.7.5
+ARG ACTIONLINT_VERSION=latest
+# Version of hadolint to install: latest, or specific version number e.g. v2.14.0
+ARG HADOLINT_VERSION=latest
+# Version of shellcheck to install: latest, or specific version number e.g. v0.11.0
+ARG SHELLCHECK_VERSION=latest
+# Version of shfmt to install: latest, or specific version number e.g. v3.12.0
+ARG SHFMT_VERSION=latest
+# Version of uv to install: latest, or specific version number e.g. v0.9.17
+ARG UV_VERSION=latest
+# Version of reviewdog to install: latest, or specific version number e.g. v0.21.0
+ARG REVIEWDOG_VERSION=latest
+# Version of Snyk to install: stable, latest, or specific version number e.g. v1.1301.1
+ARG SNYK_VERSION=stable
+
+# Images which we can directly copy the binaries from
+FROM rhysd/actionlint:${ACTIONLINT_VERSION} AS actionlint
+FROM hadolint/hadolint:${HADOLINT_VERSION} AS hadolint
+FROM koalaman/shellcheck:${SHELLCHECK_VERSION} AS shellcheck
+FROM mvdan/shfmt:${SHFMT_VERSION} AS shfmt
+
+
+
+# Using debian as base since it's generally stable, compatible and well supported
+FROM debian:13 AS base
+
+# Docker built-in arg for multi-platform builds
+ARG TARGETARCH
+
+# Redeclare args for use in this scope
+ARG UV_VERSION
+ARG REVIEWDOG_VERSION
+ARG SNYK_VERSION
+
+# Environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV JAVA_HOME=/usr/lib/jvm/java-openjdk
+ENV LANG=en_US.UTF-8
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# Pin 'stable' over 'testing' to prefer 'stable' packages
+# 'testing' packages will only be installed when explicitly requested with '-t testing'
+COPY <<-EOT /etc/apt/preferences.d/99pin-testing
+Package: *
+Pin: release a=stable
+Pin-Priority: 900
+
+Package: *
+Pin: release a=testing
+Pin-Priority: 100
+EOT
+
+# Temporarily enable 'testing' repo for outdated/unavailable packages in 'stable' repo,
+# especially those that are difficult to build/install elsewhere
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends --no-install-suggests -t testing \
+    # Required for pyre vscode extension
+    watchman \
+    # Disable 'testing' repo afterwards to prevents potential issues
+    # where only stable packages are expected (e.g. playwright install-deps)
+    && sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/testing.list
 
 # https://docs.docker.com/build/cache/optimize/#use-cache-mounts
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -13,16 +73,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends --no-install-suggests \
-    # Required for pyre vscode extension
-    watchman \
     # Required for sonarqube vscode extension
-    openjdk-17-jre-headless \
+    openjdk-21-jre-headless \
     nodejs \
-    # Required for shellcheck vscode extension
-    shellcheck \
     # Required for general purpose compilation
     gcc \
-    # General purpose tools
+    ### General purpose tools
     curl \
     git \
     openssh-client \
@@ -48,40 +104,48 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     # Code counter
     tokei \
     # Benchmarking tool
-    hyperfine \
-    # Linking preferred alternatives
-    && ln -s /usr/bin/eza /usr/local/bin/ls \
+    hyperfine
+
+# Linking preferred alternatives
+RUN ln -s /usr/bin/eza /usr/local/bin/ls \
     && ln -s /usr/bin/batcat /usr/local/bin/bat \
     && ln -s /usr/bin/fdfind /usr/local/bin/fd \
-    # Install uv:
-    && curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="/usr/local/bin" sh \
-    # Install Pulumi:
-    && curl -fsSL https://get.pulumi.com | sh \
-    && mv /root/.pulumi/bin/pulumi /usr/local/bin \
-    # Install reviewdog:
-    && curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh \
+    # Make sure java runtime is found for sonarqube
+    && ln -s "$(dirname "$(dirname "$(readlink -f "$(which java)")")")" "${JAVA_HOME}"
+
+# Install uv
+RUN UV_VER="${UV_VERSION#v}" \
+    && UV_INSTALL_URL=$([ "${UV_VER}" = "latest" ] \
+    && echo "https://astral.sh/uv/install.sh" || \
+    echo "https://astral.sh/uv/${UV_VER}/install.sh") \
+    && curl -LsSf "${UV_INSTALL_URL}" | env UV_INSTALL_DIR="/usr/local/bin" sh
+
+# Install reviewdog
+RUN curl -sfL "https://raw.githubusercontent.com/reviewdog/reviewdog/fd59714416d6d9a1c0692d872e38e7f8448df4fc/install.sh" \
     | sh -s -- -b /usr/local/bin \
-    # Make sure java runtime is found for sonarqube:
-    && ln -s "$(dirname "$(dirname "$(readlink -f "$(which java)")")")" "$JAVA_HOME" \
-    # Install other tools:
-    && export ACTIONLINT_VERSION=$(curl -s https://api.github.com/repos/rhysd/actionlint/releases/latest | jq -r '.tag_name' | sed "s/v//") \
-    && export HADOLINT_VERSION=$(curl -s https://api.github.com/repos/hadolint/hadolint/releases/latest | jq -r '.tag_name') \
-    && export SHFMT_VERSION=$(curl -s https://api.github.com/repos/mvdan/sh/releases/latest | jq -r '.tag_name') \
-    && if [ "$(uname -m)" = "aarch64" ]; then \
-    curl -o /usr/local/bin/snyk -L https://static.snyk.io/cli/latest/snyk-linux-arm64 \
-    && curl -o /usr/local/bin/hadolint -L https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-linux-arm64 \
-    && curl -o /usr/local/bin/shfmt -L https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_arm64 \
-    && curl -sL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_arm64.tar.gz" | tar -xzf - -C /usr/local/bin actionlint ; \
-    else \
-    curl -o /usr/local/bin/snyk -L https://static.snyk.io/cli/latest/snyk-linux \
-    && curl -o /usr/local/bin/hadolint -L https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-linux-x86_64 \
-    && curl -o /usr/local/bin/shfmt -L https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64 \
-    && curl -sL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" | tar -xzf - -C /usr/local/bin actionlint ; \
-    fi \
-    && chmod +x /usr/local/bin/snyk \
-    && chmod +x /usr/local/bin/hadolint \
-    && chmod +x /usr/local/bin/shfmt \
-    && chmod +x /usr/local/bin/actionlint
+    "$([ "${REVIEWDOG_VERSION}" != "latest" ] && echo "${REVIEWDOG_VERSION}" || echo "")"
+
+# Install snyk
+RUN RELEASE_JSON=$(curl -s "https://downloads.snyk.io/cli/${SNYK_VERSION}/release.json") \
+    && BINARY_NAME="snyk-linux$([ "${TARGETARCH}" = "arm64" ] && echo "-arm64" || echo "")" \
+    && SNYK_URL=$(echo "${RELEASE_JSON}" | jq -r ".assets.\"${BINARY_NAME}\".url") \
+    && SNYK_SHA256=$(echo "${RELEASE_JSON}" | jq -r ".assets.\"${BINARY_NAME}\".sha256" | awk '{print $1}') \
+    && curl -o /usr/local/bin/snyk -L "${SNYK_URL}" \
+    && echo "${SNYK_SHA256}  /usr/local/bin/snyk" | sha256sum -c - \
+    && chmod +x /usr/local/bin/snyk
+
+# Install hadolint
+COPY --from=hadolint /bin/hadolint /usr/local/bin/hadolint
+
+# Install actionlint
+COPY --from=actionlint /usr/local/bin/actionlint /usr/local/bin/actionlint
+
+# Install shellcheck
+# Required for shellcheck vscode extension and actionlint
+COPY --from=shellcheck /bin/shellcheck /usr/local/bin/shellcheck
+
+# Install shfmt (Shell formatter)
+COPY --from=shfmt /bin/shfmt /usr/local/bin/shfmt
 
 WORKDIR /app
 
