@@ -32,9 +32,6 @@ Alternative unix power tools:
 - `tokei` - code counter
 - `hyperfine` - benchmarking tool
 
-Other tools:
-
-- `pulumi` - Pulumi CLI for infrastructure as code
 
 ## Usage
 
