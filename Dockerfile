@@ -99,6 +99,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     bat \
     # Pager for bat
     less \
+    # Pager for git, diff, grep, and blame
+    git-delta \
     # Fuzzy finder
     fzf \
     # Code counter
