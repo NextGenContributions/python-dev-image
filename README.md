@@ -28,6 +28,7 @@ Alternative unix power tools:
 - `eza` - better alternative to `ls` *(symlinked to replace `ls`)*
 - `dust` - better alternative to `du`
 - `bat` - better alternative to `cat`
+- `delta` - better diff pager for `git`, `diff`, `grep`,...
 - `fzf` - fuzzy finder
 - `tokei` - code counter
 - `hyperfine` - benchmarking tool
