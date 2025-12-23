@@ -90,6 +90,10 @@ commandTests:
     command: "bat"
     args: ["--version"]
 
+  - name: "delta is installed in path"
+    command: "delta"
+    args: ["--version"]
+
   - name: "fzf is installed in path"
     command: "fzf"
     args: ["--version"]
