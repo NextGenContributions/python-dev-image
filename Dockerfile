@@ -2,6 +2,8 @@
 
 # Version of actionlint to install: latest, or specific version number WITHOUT 'v' prefix e.g. 1.7.5
 ARG ACTIONLINT_VERSION=latest
+# Version of taplo to install: latest, or specific version number WITHOUT 'v' prefix e.g. 0.10.0
+ARG TAPLO_VERSION=latest
 # Version of hadolint to install: latest, or specific version number e.g. v2.14.0
 ARG HADOLINT_VERSION=latest
 # Version of shellcheck to install: latest, or specific version number e.g. v0.11.0
@@ -17,6 +19,7 @@ ARG SNYK_VERSION=stable
 
 # Images which we can directly copy the binaries from
 FROM rhysd/actionlint:${ACTIONLINT_VERSION} AS actionlint
+FROM tamasfe/taplo:${TAPLO_VERSION} AS taplo
 FROM hadolint/hadolint:${HADOLINT_VERSION} AS hadolint
 FROM koalaman/shellcheck:${SHELLCHECK_VERSION} AS shellcheck
 FROM mvdan/shfmt:${SHFMT_VERSION} AS shfmt
@@ -141,6 +144,9 @@ COPY --from=hadolint /bin/hadolint /usr/local/bin/hadolint
 
 # Install actionlint
 COPY --from=actionlint /usr/local/bin/actionlint /usr/local/bin/actionlint
+
+# Install taplo (TOML formatter and linter)
+COPY --from=taplo /taplo /usr/local/bin/taplo
 
 # Install shellcheck
 # Required for shellcheck vscode extension and actionlint

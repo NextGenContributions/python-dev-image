@@ -49,6 +49,10 @@ commandTests:
     command: "actionlint"
     args: ["--version"]
 
+  - name: "taplo is installed in path"
+    command: "taplo"
+    args: ["--version"]
+
   - name: "watchman is installed in path"
     command: "watchman"
     args: ["--version"]

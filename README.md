@@ -19,6 +19,7 @@ It contains the necessary dependencies for running various linters and type chec
 - `reviewdog` - for code review
 - `hadolint` - for linting Dockerfile
 - `actionlint` - static checker for GitHub Actions workflow files
+- `taplo` - TOML formatter and linter
 
 Alternative unix power tools:
 
