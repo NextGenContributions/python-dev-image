@@ -42,16 +42,23 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV JAVA_HOME=/usr/lib/jvm/java-openjdk
 ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+# Install and configure locales
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
+    && apt-get install -y --no-install-recommends locales \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen en_US.UTF-8 \
+    && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
+    && rm -rf /var/lib/apt/lists/*
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Pin 'stable' over 'testing' to prefer 'stable' packages
-# 'testing' packages will only be installed when explicitly requested with '-t testing'
+# Deprioritize 'testing' to prevent accidental installs from it.
+# Packages from testing will still be available when explicitly requested with '-t testing'.
 COPY <<-EOT /etc/apt/preferences.d/99pin-testing
-Package: *
-Pin: release a=stable
-Pin-Priority: 900
-
 Package: *
 Pin: release a=testing
 Pin-Priority: 100
@@ -68,26 +75,34 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     watchman \
     # Disable 'testing' repo afterwards to prevents potential issues
     # where only stable packages are expected (e.g. playwright install-deps)
-    && sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/testing.list
+    && rm -f /etc/apt/sources.list.d/testing.list
 
 # https://docs.docker.com/build/cache/optimize/#use-cache-mounts
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
-    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends --no-install-suggests \
     # Required for sonarqube vscode extension
     openjdk-21-jre-headless \
     nodejs \
-    # Required for general purpose compilation
+    # Required for general purpose compilation and build tools:
     gcc \
+    pkg-config \
     ### General purpose tools
     curl \
+    wget \
     git \
     openssh-client \
     jq \
     zsh \
+    # Database clients:
     postgresql-client \
+    libmariadb-dev \
+    libmariadb-dev-compat \
+    # For ODBC support:
+    unixodbc-dev \
+    freetds-dev \
+    tdsodbc \
     # Better alternative to grep
     ripgrep \
     # Better alternative to find
