@@ -45,7 +45,9 @@ ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
 # Install and configure locales
-RUN apt-get update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
     && apt-get install -y --no-install-recommends locales \
     && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
     && locale-gen en_US.UTF-8 \
@@ -96,9 +98,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     # Database clients:
     postgresql-client \
     libmariadb-dev \
+    libmariadb-dev-compat \
     # For ODBC support:
     unixodbc-dev \
-    freetds-dev tdsodbc \
+    freetds-dev \
+    tdsodbc \
     # Better alternative to grep
     ripgrep \
     # Better alternative to find

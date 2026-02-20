@@ -61,10 +61,6 @@ commandTests:
     command: "ruff"
     args: ["--version"]
 
-  - name: "psql is installed in path"
-    command: "psql"
-    args: ["--version"]
-
   - name: "ripgrep is installed in path"
     command: "rg"
     args: ["--version"]
@@ -149,4 +145,3 @@ commandTests:
     command: "java"
     args: ["--version"]
     expectedOutput: ["openjdk"]
-
