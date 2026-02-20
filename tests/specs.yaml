@@ -109,3 +109,44 @@ commandTests:
   - name: "hyperfine is installed in path"
     command: "hyperfine"
     args: ["--version"]
+
+  - name: "postgresql support is available"
+    command: "psql"
+    args: ["--version"]
+    expectedOutput: ["PostgreSQL"]
+
+  - name: "nodejs is installed in path"
+    command: "node"
+    args: ["--version"]
+    expectedOutput: ["v2"] # Node 20+ outputs "v2x.x.x"
+
+  - name: "odbc support is available"
+    command: "odbcinst"
+    args: ["-j"]
+    expectedOutput: ["unixODBC"]
+
+  - name: "freetds support is available"
+    command: "odbcinst"
+    args: ["-q", "-d", "-n", "FreeTDS"]
+    expectedOutput: ["FreeTDS"]
+
+  - name: "wget is installed in path"
+    command: "wget"
+    args: ["--version"]
+    expectedOutput: ["GNU Wget"]
+
+  - name: "curl is installed in path"
+    command: "curl"
+    args: ["--version"]
+    expectedOutput: ["curl"]
+
+  - name: "jq is installed in path"
+    command: "jq"
+    args: ["--version"]
+    expectedOutput: ["jq"]
+
+  - name: "java is installed in path"
+    command: "java"
+    args: ["--version"]
+    expectedOutput: ["openjdk"]
+
