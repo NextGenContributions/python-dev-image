@@ -19,6 +19,11 @@ commandTests:
     args: ["-V"]
     expectedError: ["OpenSSH"]
 
+  - name: "gpg is installed in path"
+    command: "gpg"
+    args: ["--version"]
+    expectedOutput: ["gpg (GnuPG)"]
+
   - name: "uv is installed in path"
     command: "uv"
     args: ["--version"]
