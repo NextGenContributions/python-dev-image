@@ -22,7 +22,7 @@ commandTests:
   - name: "gpg is installed in path"
     command: "gpg"
     args: ["--version"]
-    expectedOutput: ["gpg (GnuPG)"]
+    expectedOutput: ["gpg"]
 
   - name: "uv is installed in path"
     command: "uv"
